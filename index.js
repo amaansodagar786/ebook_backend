@@ -8,8 +8,9 @@ const bcrypt = require('bcryptjs');
 app.use(express.json());
 
 const cors = require('cors');
-app.use(cors());
-
+app.use(cors({
+    origin: 'https://taskapp-lilac.vercel.app', // Replace '*' with your frontend URL for better security
+  }));
 // MongoDB connection
 mongoose
   .connect(
@@ -163,7 +164,7 @@ app.get('/api/appointments', async (req, res) => {
     }
   });
 
-  
+
   // Delete an appointment
   app.delete('/api/appointments/:id', async (req, res) => {
     try {
