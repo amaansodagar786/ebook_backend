@@ -42,32 +42,39 @@ const appointmentSchema = new mongoose.Schema({
 
 
 // Register 
+
+
 app.post('/api/register', async (req, res) => {
     const { username, email, password } = req.body;
-    console.log("Received registration request:", { username, email, password });
-  
+    console.log("Received registration request:", { username, email });
+
     try {
-      // Check if the user already exists
-      const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-      if (existingUser) {
-        console.log("Registration failed: Username or email already exists.");
-        return res.status(400).json({ message: 'Username or email already exists' });
-      }
-  
-      // Save the new user in the database
-      const newUser = new User({ username, email, password });
-      await newUser.save();
-  
-      // Log the details of the newly registered user
-      console.log("User registered successfully:", newUser);
-  
-      // Respond to the client
-      res.status(201).json({ message: 'User registered successfully' });
+        // Check if the user already exists
+        const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+        if (existingUser) {
+            console.log("Registration failed: Username or email already exists.");
+            return res.status(400).json({ message: 'Username or email already exists' });
+        }
+
+        // Hash the password before saving
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        
+        // Save the new user in the database with the hashed password
+        const newUser = new User({ username, email, password: hashedPassword });
+        await newUser.save();
+
+        // Log the details of the newly registered user (excluding password)
+        console.log("User registered successfully:", { username, email });
+
+        // Respond to the client
+        res.status(201).json({ message: 'User registered successfully' });
     } catch (err) {
-      console.error("Error during registration:", err.message);
-      res.status(500).json({ message: 'An error occurred', error: err.message });
+        console.error("Error during registration:", err.message);
+        res.status(500).json({ message: 'An error occurred', error: err.message });
     }
-  });
+});
+
   
   app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
